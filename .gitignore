@@ -1,3 +1,6 @@
 out/
 build/
 scripts/crypto/__pycache__/
+*.patch
+*.rej
+*.orig
