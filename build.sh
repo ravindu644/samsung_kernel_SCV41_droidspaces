@@ -56,7 +56,7 @@ build_kernel(){
     # make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
     
     # Make default configuration.
-    make "${BUILD_OPTIONS[@]}" beyond1qlte_jpn_kdi_defconfig custom.config
+    make "${BUILD_OPTIONS[@]}" beyond1qlte_jpn_kdi_defconfig custom.config droidspaces.config
 
     # Configure the kernel (GUI)
     make "${BUILD_OPTIONS[@]}" menuconfig
