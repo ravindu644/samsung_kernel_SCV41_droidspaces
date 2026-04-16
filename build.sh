@@ -6,6 +6,7 @@ echo -e "\n[INFO]: BUILD STARTED..!\n"
 git submodule update --init --recursive || true
 
 export KERNEL_ROOT="$(pwd)"
+export MAGISKBOOT="${KERNEL_ROOT}/prebuilts/magiskboot"
 export ARCH=arm64
 export KBUILD_BUILD_USER="@ravindu644"
 
@@ -68,4 +69,25 @@ build_kernel(){
 
     echo -e "\n[INFO]: BUILD FINISHED..!"
 }
-build_kernel
+
+build_boot(){
+    # unpack, replace, pack
+    cd "${KERNEL_ROOT}/prebuilts"
+    "${MAGISKBOOT}" unpack boot.img && \
+        cp "${KERNEL_ROOT}/build/Image" kernel && \
+        "${MAGISKBOOT}" repack boot.img && \
+        mv new-boot.img "${KERNEL_ROOT}/build/boot.img" && \
+        rm kernel kernel_dtb
+    cd "${KERNEL_ROOT}"
+}
+
+build_tar(){
+    cd "${KERNEL_ROOT}/build"
+    tar -cvf "Droidspaces-KSUN-Samsung-SCV41.tar" boot.img && \
+        echo -e "\n[INFO]: TAR BUILT SUCCESSFULLY..!\n"
+    cd "${KERNEL_ROOT}"
+}
+
+build_kernel && \
+    build_boot && \
+    build_tar
