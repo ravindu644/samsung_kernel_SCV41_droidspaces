@@ -59,7 +59,9 @@ build_kernel(){
     make "${BUILD_OPTIONS[@]}" beyond1qlte_jpn_kdi_defconfig custom.config droidspaces.config
 
     # Configure the kernel (GUI)
-    make "${BUILD_OPTIONS[@]}" menuconfig
+    if [ -z "${GITHUB_ACTIONS}" ]; then
+        make "${BUILD_OPTIONS[@]}" menuconfig
+    fi
 
     # Build the kernel
     make "${BUILD_OPTIONS[@]}" Image || exit 1
