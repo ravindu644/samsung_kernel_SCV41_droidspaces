@@ -10,42 +10,24 @@ export MAGISKBOOT="${KERNEL_ROOT}/prebuilts/magiskboot"
 export ARCH=arm64
 export KBUILD_BUILD_USER="@ravindu644"
 
-mkdir -p "${KERNEL_ROOT}/out" "${KERNEL_ROOT}/build" "${HOME}/toolchains"
-
-# init clang-r383902b
-if [ ! -d "${HOME}/toolchains/clang-r383902b" ]; then
-    echo -e "\n[INFO] Cloning clang-r383902b...\n"
-    mkdir -p "${HOME}/toolchains/clang-r383902b" && cd "${HOME}/toolchains/clang-r383902b"
-    curl -LO "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/0e9e7035bf8ad42437c6156e5950eab13655b26c/clang-r383902b.tar.gz"
-    tar -xf clang-r383902b.tar.gz && rm clang-r383902b.tar.gz
-    cd "${KERNEL_ROOT}"
-fi
-
-# init aarch64-linux-android-4.9-Linux-5.4/
-if [ ! -d "${HOME}/toolchains/aarch64-linux-android-4.9-Linux-5.4" ]; then
-    echo -e "\n[INFO] Cloning aarch64-linux-android-4.9-Linux-5.4\n"
-    mkdir -p "${HOME}/toolchains/aarch64-linux-android-4.9-Linux-5.4" && cd "${HOME}/toolchains/aarch64-linux-android-4.9-Linux-5.4"
-    curl -LO "https://github.com/ravindu644/Android-Kernel-Tutorials/releases/download/toolchains/aarch64-linux-android-4.9-Linux-5.4.tar.gz"
-    tar -xf aarch64-linux-android-4.9-Linux-5.4.tar.gz && \
-        rm aarch64-linux-android-4.9-Linux-5.4.tar.gz
-    cd "${KERNEL_ROOT}"
-fi
+mkdir -p "${KERNEL_ROOT}/out" "${KERNEL_ROOT}/build"
 
 # Export toolchain paths
-export PATH="${HOME}/toolchains/clang-r383902b/bin:${PATH}"
-export LD_LIBRARY_PATH="${HOME}/clang-r383902b/lib:${HOME}/clang-r383902b/lib64:${LD_LIBRARY_PATH}"
+export PATH="${KERNEL_ROOT}/prebuilts/toolchain/llvm-arm-toolchain-ship/10.0.9/bin:${PATH}"
+export LD_LIBRARY_PATH="${KERNEL_ROOT}/prebuilts/toolchain/llvm-arm-toolchain-ship/10.0.9/lib:${LD_LIBRARY_PATH}"
 
 # Set cross-compile environment variables
-export BUILD_CROSS_COMPILE="${HOME}/toolchains/aarch64-linux-android-4.9-Linux-5.4/bin/aarch64-linux-android-"
-export BUILD_CC="${HOME}/toolchains/clang-r383902b/bin/clang"
+export BUILD_CROSS_COMPILE="${KERNEL_ROOT}/prebuilts/toolchain/gcc-cfp/gcc-cfp-single/aarch64-linux-android-4.9/bin/aarch64-linux-android-"
+export BUILD_CC="${KERNEL_ROOT}/prebuilts/toolchain/llvm-arm-toolchain-ship/10.0.9/bin/clang"
 
 # Build options for the kernel
 export BUILD_OPTIONS=(
-    HOSTLDLIBS="-lyaml"
     -C "${KERNEL_ROOT}"
     O="${KERNEL_ROOT}/out"
     -j"$(nproc)"
     ARCH=arm64
+    DTC_EXT="${KERNEL_ROOT}/tools/dtc"
+    CONFIG_BUILD_ARM64_DT_OVERLAY=y
     CROSS_COMPILE="${BUILD_CROSS_COMPILE}"
     CC="${BUILD_CC}"
     CLANG_TRIPLE=aarch64-linux-gnu-
@@ -53,21 +35,21 @@ export BUILD_OPTIONS=(
 
 build_kernel(){
     # Cleanup
-    # make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
+    make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
     
     # Make default configuration.
     make "${BUILD_OPTIONS[@]}" beyond1qlte_jpn_kdi_defconfig custom.config droidspaces.config
 
-    # Configure the kernel (GUI)
+    # Configure the kernel (TUI)
     if [ -z "${GITHUB_ACTIONS}" ]; then
         make "${BUILD_OPTIONS[@]}" menuconfig
     fi
 
     # Build the kernel
-    make "${BUILD_OPTIONS[@]}" Image || exit 1
+    make "${BUILD_OPTIONS[@]}" || exit 1
 
     # Copy the built kernel to the build directory
-    cp "${KERNEL_ROOT}/out/arch/arm64/boot/Image" "${KERNEL_ROOT}/build"
+    # cp "${KERNEL_ROOT}/out/arch/arm64/boot/Image" "${KERNEL_ROOT}/build"
 
     echo -e "\n[INFO]: BUILD FINISHED..!"
 }
