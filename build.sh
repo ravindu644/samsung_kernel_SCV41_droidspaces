@@ -35,7 +35,7 @@ export BUILD_OPTIONS=(
 
 build_kernel(){
     # Cleanup
-    make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
+    # make "${BUILD_OPTIONS[@]}" clean && make "${BUILD_OPTIONS[@]}" mrproper
     
     # Make default configuration.
     make "${BUILD_OPTIONS[@]}" beyond1qlte_jpn_kdi_defconfig custom.config droidspaces.config
@@ -49,19 +49,18 @@ build_kernel(){
     make "${BUILD_OPTIONS[@]}" || exit 1
 
     # Copy the built kernel to the build directory
-    # cp "${KERNEL_ROOT}/out/arch/arm64/boot/Image" "${KERNEL_ROOT}/build"
+    cp "${KERNEL_ROOT}/out/arch/arm64/boot/Image-dtb" "${KERNEL_ROOT}/build/Image-dtb"
 
     echo -e "\n[INFO]: BUILD FINISHED..!"
 }
 
 build_boot(){
     # unpack, replace, pack
-    cd "${KERNEL_ROOT}/prebuilts"
-    "${MAGISKBOOT}" unpack boot.img && \
-        cp "${KERNEL_ROOT}/build/Image" kernel && \
-        "${MAGISKBOOT}" repack boot.img && \
-        mv new-boot.img "${KERNEL_ROOT}/build/boot.img" && \
-        rm kernel kernel_dtb
+    cd "${KERNEL_ROOT}/prebuilts/boot_editor_v15_r1" && \
+        cp "${KERNEL_ROOT}/build/Image-dtb" build/unzip_boot/kernel && \
+        ./gradlew pack && \
+        mv boot.img.signed "${KERNEL_ROOT}/build/boot.img" && \
+        git clean -xfd || true
     cd "${KERNEL_ROOT}"
 }
 
