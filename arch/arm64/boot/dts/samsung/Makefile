@@ -8,6 +8,7 @@ else ifeq ($(filter y,$(CONFIG_SEC_R5Q_PROJECT) $(CONFIG_SEC_R3Q_PROJECT)),y)
 else ifeq ($(filter y,$(CONFIG_SEC_ZODIAC_PROJECT)),y)
 else ifeq ($(filter y,$(CONFIG_SEC_A82XQ_PROJECT)),y)
 endif
+dtb-y += beyond1qlte.dtb
 
 ifeq ($(CONFIG_ARM64),y)
 always          := $(dtb-y)
